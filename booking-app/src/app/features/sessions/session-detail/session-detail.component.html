@@ -1,0 +1,129 @@
+<div class="detail-page">
+  @if (loading) {
+    <div class="loading-center"><mat-spinner diameter="48"></mat-spinner></div>
+  } @else if (error || !session) {
+    <div class="error-state">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ error || 'Session not found.' }}</p>
+      <a mat-raised-button color="primary" routerLink="/sessions">Back to Sessions</a>
+    </div>
+  } @else {
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+      <a routerLink="/sessions">Sessions</a>
+      <mat-icon>chevron_right</mat-icon>
+      <span>{{ session.title }}</span>
+    </div>
+
+    <div class="detail-layout">
+      <!-- Main content -->
+      <div class="detail-main">
+        <div class="hero-image" [style.background-image]="session.imageUrl ? 'url(' + session.imageUrl + ')' : ''">
+          <span class="category-chip">{{ session.category }}</span>
+        </div>
+
+        <mat-card class="info-card">
+          <mat-card-content>
+            <h1 class="session-title">{{ session.title }}</h1>
+            <div class="instructor-row">
+              <mat-icon>person</mat-icon>
+              <span>Instructor: <strong>{{ session.instructor }}</strong></span>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <h3>About This Session</h3>
+            <p class="description">{{ session.description }}</p>
+
+            @if (session.tags?.length) {
+              <div class="tags-row">
+                <mat-chip-set>
+                  @for (tag of session.tags; track tag) {
+                    <mat-chip>{{ tag }}</mat-chip>
+                  }
+                </mat-chip-set>
+              </div>
+            }
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="detail-sidebar">
+        <mat-card class="booking-card">
+          <mat-card-content>
+            <div class="price-display">
+              <span class="price">{{ session.price === 0 ? 'Free' : (session.price | currency) }}</span>
+              <span class="per-session">per session</span>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <div class="session-details-list">
+              <div class="detail-item">
+                <mat-icon>calendar_today</mat-icon>
+                <div>
+                  <div class="label">Date</div>
+                  <div class="value">{{ session.date }}</div>
+                </div>
+              </div>
+              <div class="detail-item">
+                <mat-icon>schedule</mat-icon>
+                <div>
+                  <div class="label">Time</div>
+                  <div class="value">{{ session.startTime }} – {{ session.endTime }}</div>
+                </div>
+              </div>
+              <div class="detail-item">
+                <mat-icon>location_on</mat-icon>
+                <div>
+                  <div class="label">Location</div>
+                  <div class="value">{{ session.location }}</div>
+                </div>
+              </div>
+              <div class="detail-item">
+                <mat-icon>group</mat-icon>
+                <div>
+                  <div class="label">Availability</div>
+                  <div class="value">{{ session.availableSlots }} of {{ session.capacity }} spots left</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Availability bar -->
+            <div class="availability-bar-wrapper">
+              <div class="availability-bar">
+                <div class="availability-fill"
+                  [style.width.%]="getAvailabilityPercent()"
+                  [class.low]="session.availableSlots <= 3">
+                </div>
+              </div>
+              <span class="availability-text" [class.text-low]="session.availableSlots <= 3">
+                @if (session.availableSlots === 0) { Fully Booked }
+                @else if (session.availableSlots <= 3) { Only {{ session.availableSlots }} spots left! }
+                @else { {{ getAvailabilityPercent() }}% available }
+              </span>
+            </div>
+
+            <button
+              mat-raised-button
+              color="primary"
+              class="book-btn"
+              [disabled]="session.availableSlots === 0"
+              (click)="book()">
+              <mat-icon>event_available</mat-icon>
+              {{ session.availableSlots === 0 ? 'Fully Booked' : 'Book This Session' }}
+            </button>
+
+            @if (!authService.isLoggedIn) {
+              <p class="login-hint">
+                <mat-icon>info</mat-icon>
+                You'll need to sign in to complete your booking.
+              </p>
+            }
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  }
+</div>

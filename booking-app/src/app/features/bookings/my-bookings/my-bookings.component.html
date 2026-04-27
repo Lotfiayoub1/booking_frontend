@@ -1,0 +1,134 @@
+<div class="bookings-page">
+  <div class="page-header">
+    <h1>My Bookings</h1>
+    <a mat-raised-button color="primary" routerLink="/sessions">
+      <mat-icon>add</mat-icon> Book a Session
+    </a>
+  </div>
+
+  @if (loading) {
+    <div class="loading-center"><mat-spinner diameter="48"></mat-spinner></div>
+  } @else if (error) {
+    <div class="error-state">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ error }}</p>
+      <button mat-raised-button color="primary" (click)="loadBookings()">Retry</button>
+    </div>
+  } @else if (bookings.length === 0) {
+    <div class="empty-state">
+      <mat-icon>event_busy</mat-icon>
+      <h3>No bookings yet</h3>
+      <p>Start by browsing available sessions</p>
+      <a mat-raised-button color="primary" routerLink="/sessions">Browse Sessions</a>
+    </div>
+  } @else {
+    <mat-tab-group animationDuration="200ms">
+      <!-- Upcoming -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon>upcoming</mat-icon>&nbsp; Upcoming
+          @if (upcomingBookings.length) { <span class="tab-badge">{{ upcomingBookings.length }}</span> }
+        </ng-template>
+        <div class="tab-content">
+          @if (upcomingBookings.length === 0) {
+            <div class="tab-empty">
+              <mat-icon>event_available</mat-icon>
+              <p>No upcoming bookings</p>
+            </div>
+          } @else {
+            @for (booking of upcomingBookings; track booking.id) {
+              <ng-container *ngTemplateOutlet="bookingCard; context: { booking, showCancel: true }"></ng-container>
+            }
+          }
+        </div>
+      </mat-tab>
+
+      <!-- Past -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon>history</mat-icon>&nbsp; Past
+        </ng-template>
+        <div class="tab-content">
+          @if (pastBookings.length === 0) {
+            <div class="tab-empty">
+              <mat-icon>history</mat-icon>
+              <p>No past bookings</p>
+            </div>
+          } @else {
+            @for (booking of pastBookings; track booking.id) {
+              <ng-container *ngTemplateOutlet="bookingCard; context: { booking, showCancel: false }"></ng-container>
+            }
+          }
+        </div>
+      </mat-tab>
+
+      <!-- Cancelled -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon>cancel</mat-icon>&nbsp; Cancelled
+        </ng-template>
+        <div class="tab-content">
+          @if (cancelledBookings.length === 0) {
+            <div class="tab-empty">
+              <mat-icon>check</mat-icon>
+              <p>No cancelled bookings</p>
+            </div>
+          } @else {
+            @for (booking of cancelledBookings; track booking.id) {
+              <ng-container *ngTemplateOutlet="bookingCard; context: { booking, showCancel: false }"></ng-container>
+            }
+          }
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  }
+</div>
+
+<!-- Booking Card Template -->
+<ng-template #bookingCard let-booking="booking" let-showCancel="showCancel">
+  <mat-card class="booking-card" [class.cancelled]="booking.status === 'cancelled'">
+    <mat-card-content>
+      <div class="booking-header">
+        <div>
+          <h3 class="booking-title">{{ booking.sessionTitle }}</h3>
+          <p class="booking-instructor">
+            <mat-icon>person</mat-icon> {{ booking.instructor }}
+          </p>
+        </div>
+        <div class="status-chip" [class]="'status-' + booking.status">
+          <mat-icon>{{ getStatusIcon(booking.status) }}</mat-icon>
+          {{ booking.status | titlecase }}
+        </div>
+      </div>
+
+      <div class="booking-details">
+        <span><mat-icon>calendar_today</mat-icon> {{ booking.sessionDate }}</span>
+        <span><mat-icon>schedule</mat-icon> {{ booking.sessionStartTime }} – {{ booking.sessionEndTime }}</span>
+        <span><mat-icon>location_on</mat-icon> {{ booking.location }}</span>
+        <span><mat-icon>payments</mat-icon> {{ booking.price === 0 ? 'Free' : (booking.price | currency) }}</span>
+      </div>
+
+      @if (booking.notes) {
+        <div class="booking-notes">
+          <mat-icon>notes</mat-icon> {{ booking.notes }}
+        </div>
+      }
+
+      <div class="booking-footer">
+        <span class="booked-at">Booked on {{ booking.bookedAt | date:'mediumDate' }}</span>
+        @if (showCancel && booking.status !== 'cancelled') {
+          <button mat-stroked-button color="warn"
+            [disabled]="cancellingId === booking.id"
+            (click)="cancelBooking(booking)">
+            @if (cancellingId === booking.id) {
+              <mat-spinner diameter="16"></mat-spinner>
+            } @else {
+              <mat-icon>cancel</mat-icon>
+            }
+            Cancel
+          </button>
+        }
+      </div>
+    </mat-card-content>
+  </mat-card>
+</ng-template>

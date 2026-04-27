@@ -1,0 +1,97 @@
+<div class="sessions-page">
+  <!-- Hero Banner -->
+  <div class="hero-banner">
+    <h1>Browse Sessions</h1>
+    <p>Find and book the perfect session for you</p>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search sessions</mat-label>
+      <input matInput [formControl]="searchControl" placeholder="Title, instructor..." />
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="category-field">
+      <mat-label>Category</mat-label>
+      <mat-select [formControl]="categoryControl">
+        <mat-option value="">All Categories</mat-option>
+        @for (cat of categories; track cat) {
+          <mat-option [value]="cat">{{ cat }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    @if (searchControl.value || categoryControl.value) {
+      <button mat-stroked-button (click)="clearFilters()">
+        <mat-icon>clear</mat-icon> Clear
+      </button>
+    }
+  </div>
+
+  <!-- Content -->
+  @if (loading) {
+    <div class="loading-center">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  } @else if (error) {
+    <div class="error-state">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ error }}</p>
+      <button mat-raised-button color="primary" (click)="loadSessions()">Retry</button>
+    </div>
+  } @else if (filteredSessions.length === 0) {
+    <div class="empty-state">
+      <mat-icon>search_off</mat-icon>
+      <p>No sessions found matching your criteria.</p>
+      <button mat-stroked-button (click)="clearFilters()">Clear Filters</button>
+    </div>
+  } @else {
+    <div class="results-info">
+      <span>{{ filteredSessions.length }} session{{ filteredSessions.length !== 1 ? 's' : '' }} found</span>
+    </div>
+    <div class="sessions-grid">
+      @for (session of filteredSessions; track session.id) {
+        <mat-card class="session-card" [class.unavailable-card]="session.availableSlots === 0">
+          <div class="card-image" [style.background-image]="session.imageUrl ? 'url(' + session.imageUrl + ')' : ''">
+            <span class="category-chip">{{ session.category }}</span>
+            <span class="availability-badge" [class]="getAvailabilityClass(session)">
+              @if (session.availableSlots === 0) { Full }
+              @else if (session.availableSlots <= 3) { {{ session.availableSlots }} left }
+              @else { Available }
+            </span>
+          </div>
+
+          <mat-card-header>
+            <mat-card-title>{{ session.title }}</mat-card-title>
+            <mat-card-subtitle>
+              <mat-icon class="inline-icon">person</mat-icon> {{ session.instructor }}
+            </mat-card-subtitle>
+          </mat-card-header>
+
+          <mat-card-content>
+            <p class="description">{{ session.description }}</p>
+            <div class="session-meta">
+              <span><mat-icon class="inline-icon">calendar_today</mat-icon> {{ session.date }}</span>
+              <span><mat-icon class="inline-icon">schedule</mat-icon> {{ session.startTime }} – {{ session.endTime }}</span>
+              <span><mat-icon class="inline-icon">location_on</mat-icon> {{ session.location }}</span>
+              <span><mat-icon class="inline-icon">group</mat-icon> {{ session.availableSlots }}/{{ session.capacity }} spots</span>
+            </div>
+            <div class="price-row">
+              <span class="price">{{ session.price === 0 ? 'Free' : (session.price | currency) }}</span>
+            </div>
+          </mat-card-content>
+
+          <mat-card-actions>
+            <a mat-raised-button [color]="isAvailable(session) ? 'primary' : 'basic'"
+              [routerLink]="['/sessions', session.id]"
+              [disabled]="!isAvailable(session)">
+              {{ isAvailable(session) ? 'View & Book' : 'Fully Booked' }}
+            </a>
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+  }
+</div>
