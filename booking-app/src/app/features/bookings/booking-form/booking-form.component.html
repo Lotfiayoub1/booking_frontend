@@ -1,0 +1,113 @@
+<div class="booking-page">
+  <div class="page-header">
+    <a mat-icon-button routerLink="/sessions">
+      <mat-icon>arrow_back</mat-icon>
+    </a>
+    <h2>Confirm Your Booking</h2>
+  </div>
+
+  @if (loadingSession) {
+    <div class="loading-center"><mat-spinner diameter="48"></mat-spinner></div>
+  } @else if (sessionError || !session) {
+    <div class="error-state">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ sessionError || 'Session not found.' }}</p>
+      <a mat-raised-button color="primary" routerLink="/sessions">Back to Sessions</a>
+    </div>
+  } @else {
+    <div class="booking-layout">
+      <!-- Session Summary Card -->
+      <mat-card class="summary-card">
+        <mat-card-header>
+          <mat-card-title>Session Summary</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="summary-hero">
+            <div class="summary-category">{{ session.category }}</div>
+            <h3>{{ session.title }}</h3>
+            <p class="summary-instructor">
+              <mat-icon>person</mat-icon> {{ session.instructor }}
+            </p>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <div class="summary-details">
+            <div class="summary-row">
+              <mat-icon>calendar_today</mat-icon>
+              <span>{{ session.date }}</span>
+            </div>
+            <div class="summary-row">
+              <mat-icon>schedule</mat-icon>
+              <span>{{ session.startTime }} – {{ session.endTime }}</span>
+            </div>
+            <div class="summary-row">
+              <mat-icon>location_on</mat-icon>
+              <span>{{ session.location }}</span>
+            </div>
+            <div class="summary-row">
+              <mat-icon>group</mat-icon>
+              <span>{{ session.availableSlots }} spots available</span>
+            </div>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <div class="price-summary">
+            <span>Total</span>
+            <span class="total-price">{{ session.price === 0 ? 'Free' : (session.price | currency) }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Booking Form Card -->
+      <mat-card class="form-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>account_circle</mat-icon>
+            Attendee Information
+          </mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+          <!-- Logged-in user info display -->
+          <div class="user-info-display">
+            <div class="user-avatar">{{ authService.currentUser()?.name?.charAt(0)?.toUpperCase() }}</div>
+            <div>
+              <div class="user-name">{{ authService.currentUser()?.name }}</div>
+              <div class="user-email">{{ authService.currentUser()?.email }}</div>
+            </div>
+          </div>
+
+          <form [formGroup]="form" (ngSubmit)="onSubmit()">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Notes (optional)</mat-label>
+              <textarea matInput formControlName="notes" rows="3"
+                placeholder="Any special requirements or notes for the instructor..."></textarea>
+              <mat-icon matSuffix>notes</mat-icon>
+            </mat-form-field>
+
+            <div class="terms-notice">
+              <mat-icon>info_outline</mat-icon>
+              <span>By confirming, you agree to the cancellation policy. Bookings can be cancelled up to 24 hours before the session.</span>
+            </div>
+
+            <button
+              mat-raised-button
+              color="primary"
+              type="submit"
+              class="confirm-btn"
+              [disabled]="submitting">
+              @if (submitting) {
+                <mat-spinner diameter="20"></mat-spinner>
+              } @else {
+                <mat-icon>event_available</mat-icon>
+                Confirm Booking
+              }
+            </button>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+</div>

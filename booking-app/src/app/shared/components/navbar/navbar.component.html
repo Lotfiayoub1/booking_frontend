@@ -1,0 +1,38 @@
+<mat-toolbar color="primary" class="navbar">
+  <a routerLink="/" class="brand">
+    <mat-icon>event_seat</mat-icon>
+    <span>BookIt</span>
+  </a>
+
+  <div class="spacer"></div>
+
+  <nav class="nav-links">
+    <a mat-button routerLink="/sessions" routerLinkActive="active-link">
+      <mat-icon>explore</mat-icon> Sessions
+    </a>
+
+    @if (authService.isLoggedIn) {
+      <a mat-button routerLink="/bookings/me" routerLinkActive="active-link">
+        <mat-icon>event_note</mat-icon> My Bookings
+      </a>
+      <button mat-button [matMenuTriggerFor]="userMenu" class="user-menu-btn">
+        <div class="avatar">{{ authService.currentUser()?.name?.charAt(0)?.toUpperCase() }}</div>
+        <span class="user-name-nav">{{ authService.currentUser()?.name }}</span>
+        <mat-icon>arrow_drop_down</mat-icon>
+      </button>
+      <mat-menu #userMenu="matMenu">
+        <div class="menu-user-info">
+          <div class="menu-user-name">{{ authService.currentUser()?.name }}</div>
+          <div class="menu-user-email">{{ authService.currentUser()?.email }}</div>
+        </div>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="authService.logout()">
+          <mat-icon>logout</mat-icon> Sign Out
+        </button>
+      </mat-menu>
+    } @else {
+      <a mat-button routerLink="/auth/login" routerLinkActive="active-link">Sign In</a>
+      <a mat-raised-button color="accent" routerLink="/auth/register">Get Started</a>
+    }
+  </nav>
+</mat-toolbar>
